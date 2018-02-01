@@ -1,0 +1,168 @@
+/* pages/map/map.wxss */
+.map-container{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+}
+.map{
+  width: 100%;
+  height: 100%;
+}
+.map-text{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  height: 300px;
+  background: #fff;
+  padding: 0 15px;
+}
+text{
+  margin: 5px 0;
+  display: block;
+  font-size:12px;
+}
+/* 操作面板 */
+.map-option {
+  position: absolute;
+  left: 0;
+  top: 60%;
+  width: 100%;
+  text-align: center;
+}
+.map-option checkbox {
+  margin: 20rpx 10rpx;
+}
+.map-option button {
+  margin-top: 20rpx;
+}
+/* 基础 */
+.h1{
+  margin: 15px 0;
+  font-size:15px;
+}
+.checkbox {
+  position: relative;
+  height: 50rpx;
+  margin: 5px;
+  overflow: visible;
+}
+.checkbox.selected .icon::after {
+  position: absolute;
+  display: block;
+  content: ' ';
+  top: 10rpx;
+  left: 20rpx;
+  width: 13rpx;
+  height: 23rpx;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  z-index: 9;
+  transform: rotate(-135deg);
+}
+.checkbox .icon {
+  position: relative;
+  display: inline-block;
+  height: 50rpx;
+  width: 50rpx;
+  background: #fff;
+  vertical-align: middle;
+  border-radius: 5rpx;
+  box-shadow: 0 0 2px 0 #000 inset;
+  margin-right: 10rpx;
+}
+.checkbox .text {
+  display: inline-block;
+  vertical-align: middle;
+}
+.button {
+  position:relative;
+  display:block;
+  margin-left:auto;
+  margin-right:auto;
+  padding-left:14px;
+  padding-right:14px;
+  box-sizing:border-box;
+  font-size:18px;
+  text-align:center;
+  text-decoration:none;
+  line-height:2.55555556;
+  border-radius:5px;
+  -webkit-tap-highlight-color:transparent;
+  overflow:hidden;
+  color:#000000;
+  background-color:#F8F8F8;
+}
+.button::after {
+  content:" ";
+  width:200%;
+  height:200%;
+  position:absolute;
+  top:0;
+  left:0;
+  border:1px solid rgba(0, 0, 0, 0.2);
+  -webkit-transform:scale(0.5);
+  transform:scale(0.5);
+  -webkit-transform-origin:0 0;
+  transform-origin:0 0;
+  box-sizing:border-box;
+  border-radius:10px;
+}
+
+/* 地图覆盖物 */
+.cover-location {
+  position: absolute;
+  overflow: visible;
+  top: calc(50% - 200rpx);
+  left: calc(50% - 60rpx);
+  height: 120rpx;
+  width: 120rpx;
+}
+.location-line {
+  position: absolute;
+  display: block;
+  content: ' ';
+  left: 60rpx;
+  bottom: -70rpx;
+  height: 100rpx;
+  width: 0;
+  border-left: 1px dashed #000;
+  z-index: 1;
+}
+.cover-button {
+  position: absolute;
+  width: 200rpx;
+  bottom: 100rpx;
+  left: calc(50% - 100rpx);
+  z-index: 99;
+}
+.cover-option {
+  position: absolute;
+  padding: 15rpx 20rpx;
+  width: 35%;
+  top: 10rpx;
+  left: 10rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+}
+.cover-option .item {
+  margin: 10rpx;
+}
+.user-logo {
+  position: relative;
+  margin: 10rpx;
+  height: 100rpx;
+  width: 100rpx;
+  border-radius: 50rpx;
+  border: 15rpx solid #fff;
+  box-sizing: border-box;
+  box-shadow: 0 0 5px 0 #000;
+  z-index: 5;
+}
+.user-frame {
+  
+}

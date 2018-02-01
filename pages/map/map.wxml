@@ -1,0 +1,44 @@
+<!--pages/map/map.wxml-->
+<view class="map-container">
+  <map 
+    class="map" id="map" 
+    show-location="{{false}}" 
+    scale="{{scale}}" 
+    controls="{{controls}}" 
+    markers="{{markers}}" 
+    longitude="{{location.longitude}}" 
+    latitude="{{location.latitude}}" 
+    bindregionchange="regionchange">
+  </map>
+  <cover-view class="cover-location">
+    <!-- <cover-view class="location-line">111</cover-view> -->
+    <cover-image class="user-logo" src="{{userInfo.avatarUrl}}"></cover-image>
+  </cover-view>
+
+  <cover-view class="cover-option">
+    <cover-view class="item">天气</cover-view>
+    <cover-view class="item">位置</cover-view>
+    <cover-view class="item">速度</cover-view>
+    <cover-view class="item">高度</cover-view>
+  </cover-view>
+
+  <!-- <cover-view class="cover-button">
+    <cover-view bindtap="toStaticMap" class="button">下一步</cover-view>
+  </cover-view>
+
+  <cover-view class="cover-option">
+    <cover-view>
+      <cover-view class="checkbox selected">
+        <cover-view class="icon"></cover-view>
+        <cover-view class="text">123333</cover-view>
+      </cover-view>
+    </cover-view>
+  </cover-view> -->
+  
+</view>
+<view class="map-option"> 
+  <checkbox>天气</checkbox>
+  <checkbox>速度</checkbox>
+  <checkbox>高度</checkbox>
+  <button>下一步</button>
+</view>
