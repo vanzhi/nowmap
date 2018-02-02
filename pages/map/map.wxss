@@ -4,7 +4,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 60%;
+  bottom: 220rpx;
 }
 .map{
   width: 100%;
@@ -28,8 +28,9 @@ text{
 .map-option {
   position: absolute;
   left: 0;
-  top: 60%;
+  bottom: 0;
   width: 100%;
+  height: 200rpx;
   text-align: center;
 }
 .map-option checkbox {
@@ -37,6 +38,28 @@ text{
 }
 .map-option button {
   margin-top: 20rpx;
+}
+/* 按钮 */
+.btn-buttom {
+  position: absolute;
+  display:block;
+  margin-left:auto;
+  margin-right:auto;
+  padding-left:14px;
+  padding-right:14px;
+  box-sizing:border-box;
+  font-size:18px;
+  text-align:center;
+  text-decoration:none;
+  line-height:2.55555556;
+  border-radius:5px;
+  -webkit-tap-highlight-color:transparent;
+  overflow:hidden;
+  color:#000000;
+  background-color:#F8F8F8;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 /* 基础 */
 .h1{
@@ -141,7 +164,7 @@ text{
 .cover-option {
   position: absolute;
   padding: 15rpx 20rpx;
-  width: 35%;
+  width: 56%;
   top: 10rpx;
   left: 10rpx;
   background: rgba(0, 0, 0, 0.5);

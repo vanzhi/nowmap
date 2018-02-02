@@ -1,0 +1,9 @@
+<!--pages/staticMap/staticMap.wxml-->
+<view class="img-box">
+  <!-- <image src="{{src}}"></image> -->
+  <canvas canvas-id="canvas" />
+  <view class="canvas-operate">
+    <button bindtap="toChangeBgImg">更换背景图</button>
+    <button>保存到相册</button>
+  </view>
+</view>

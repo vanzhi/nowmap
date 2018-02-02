@@ -3,23 +3,25 @@
   <map 
     class="map" id="map" 
     show-location="{{false}}" 
-    scale="{{scale}}" 
     controls="{{controls}}" 
     markers="{{markers}}" 
-    longitude="{{location.longitude}}" 
-    latitude="{{location.latitude}}" 
-    bindregionchange="regionchange">
+    scale="{{mapInfo.scale}}" 
+    longitude="{{mapInfo.longitude}}" 
+    latitude="{{mapInfo.latitude}}" 
+    bindregionchange="regionChangeHandle">
   </map>
   <cover-view class="cover-location">
-    <!-- <cover-view class="location-line">111</cover-view> -->
     <cover-image class="user-logo" src="{{userInfo.avatarUrl}}"></cover-image>
   </cover-view>
 
   <cover-view class="cover-option">
-    <cover-view class="item">天气</cover-view>
-    <cover-view class="item">位置</cover-view>
-    <cover-view class="item">速度</cover-view>
-    <cover-view class="item">高度</cover-view>
+    <cover-view class="item">位置：{{mapInfo.address}}</cover-view>
+    <cover-view class="item"
+      wx:for="{{checkboxGroup}}" 
+      wx:key="{{index}}" 
+      wx:if="{{item.checked}}">
+      {{item.name}}：{{item.displayInfo}}
+    </cover-view>
   </cover-view>
 
   <!-- <cover-view class="cover-button">
@@ -37,8 +39,8 @@
   
 </view>
 <view class="map-option"> 
-  <checkbox>天气</checkbox>
-  <checkbox>速度</checkbox>
-  <checkbox>高度</checkbox>
-  <button>下一步</button>
+  <checkbox-group bindchange="checkboxChangeHandle">
+    <checkbox wx:for="{{checkboxGroup}}"  wx:key="{{item.value}}" checked="{{item.checked}}" value="{{index}}">{{item.name}}</checkbox>
+  </checkbox-group>
+  <view class="btn-buttom" bindtap="toStaticMap">下一步</view>
 </view>

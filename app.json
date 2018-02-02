@@ -2,6 +2,7 @@
   "pages": [
     "pages/map/map",
     "pages/index/index",
+    "pages/staticMap/staticMap",
     "pages/logs/logs"
   ],
   "window": {
