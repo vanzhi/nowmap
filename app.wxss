@@ -8,3 +8,55 @@
   padding: 200rpx 0;
   box-sizing: border-box;
 } 
+/* 基础 */
+.h1{
+  margin: 15px 0;
+  font-size:15px;
+}
+.checkbox {
+  position: relative;
+  height: 50rpx;
+  margin: 5px;
+  overflow: visible;
+}
+.checkbox.selected .icon::after {
+  position: absolute;
+  display: block;
+  content: ' ';
+  top: 10rpx;
+  left: 20rpx;
+  width: 13rpx;
+  height: 23rpx;
+  border-top: 1px solid #000;
+  border-left: 1px solid #000;
+  z-index: 9;
+  transform: rotate(-135deg);
+}
+.checkbox .icon {
+  position: relative;
+  display: inline-block;
+  height: 50rpx;
+  width: 50rpx;
+  background: #fff;
+  vertical-align: middle;
+  border-radius: 5rpx;
+  box-shadow: 0 0 2px 0 #000 inset;
+  margin-right: 10rpx;
+}
+.checkbox .text {
+  display: inline-block;
+  vertical-align: middle;
+}
+.button {
+  position:relative;
+  display:block;
+  padding: 0 20rpx;
+  box-sizing:border-box;
+  font-size:18px;
+  text-align:center;
+  text-decoration:none;
+  line-height:2.55555556;
+  border-radius:5px;
+  color:#000000;
+  background-color:#F8F8F8;
+}

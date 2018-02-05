@@ -2,8 +2,8 @@
 <view class="img-box">
   <!-- <image src="{{src}}"></image> -->
   <canvas canvas-id="canvas" />
-  <view class="canvas-operate">
-    <button bindtap="toChangeBgImg">更换背景图</button>
-    <button>保存到相册</button>
-  </view>
+  <cover-view class="canvas-operate">
+    <cover-view class="button" bindtap="toChangeBgImg">更换背景图</cover-view >
+    <cover-view class="button">{{loading ? '载入中' : ''}}</cover-view >
+  </cover-view>
 </view>

@@ -1,9 +1,9 @@
 // pages/staticMap/staticMap.js
 const amapFile = require('../../3rds/amap-wx.js');
 const app = getApp()
+const map = 'map'
 
 Page({
-
   /**
    * 页面的初始数据
    */
@@ -11,50 +11,68 @@ Page({
     src: '',
     dfImg: '/resources/login_bg.jpg',
     userImg: '',
-    weather: {},
-    address: {},
-    location: {},
-    checkboxGroup: {}
+    mapImg: '',
+    mapInfo: {},
+    loading: true
+  },
+  loading(bool) {
+    this.setData({
+      loading : bool || false
+    })
   },
   // 更换背景图
   toChangeBgImg() {
     wx.chooseImage({
       count: 1,
-      success: (tempFilePaths) => {
-
+      success: ({ tempFilePaths }) => {
+        this.setData({ userImg: tempFilePaths[0] })
+        this.canvasMaker()
+      },
+      fail: () => {
+        // 没选择任何图片时
+        this.loading(false)
       }
     })
   },
+  // 读取本地缓存数据
   getFromStorage() {
-    let param = {
-      weather: wx.getStorageSync('weather'),
-      address: wx.getStorageSync('address'),
-      location: wx.getStorageSync('location'),
-      checkboxGroup: wx.getStorageSync('checkboxGroup'),
-    }
-    this.setData(param)
+    let mapInfo = wx.getStorageSync('mapInfo')
+    this.setData({mapInfo})
   },
   canvasMaker() {
-    
+    let img = this.data.userImg || this.data.dfImg
+    let ctx = wx.createCanvasContext('canvas')
+    let sysWidth = this.data.systemInfo.width
+    let sysHeight = this.data.systemInfo.height
+    ctx.clearRect(0, 0, sysWidth, sysHeight)
+    ctx.drawImage(img, 0, 0, sysWidth, sysHeight)
+    // todo-此处用png图修改
+    ctx.setGlobalAlpha(0.25)
+    const grd = ctx.createCircularGradient(sysWidth / 2, sysHeight / 2, sysHeight / 2)
+    grd.addColorStop(0, 'white')
+    grd.addColorStop(1, 'black')
+    ctx.setFillStyle(grd)
+    ctx.fillRect(0, 0, sysWidth, sysHeight)
+    // --
+    ctx.setGlobalAlpha(0.75)
+    ctx.drawImage(this.data.mapImg, 0, 0, sysWidth, sysHeight)
+    ctx.draw()
+    this.loading(false)
   },
   // 画画开始了
   setCanvans() {
-    let ctx = wx.createCanvasContext('canvas')
     wx.downloadFile({
       url: this.data.src,
       success: ({ tempFilePath }) => {
-        ctx.drawImage(tempFilePath, 0, 0, this.data.systemInfo.width, this.data.systemInfo.height)
-        ctx.setGlobalAlpha(0.45)
-        ctx.drawImage(this.data.dfImg, 0, 0, this.data.systemInfo.width, this.data.systemInfo.height)
-        ctx.draw()
+        this.setData({ mapImg: tempFilePath })
+        this.canvasMaker()
       }
     })
-    
   },
   // 设置静态图
   setStaticMap() {
     let apmap = new amapFile.AMapWX({ key: app.globalData.appKey });
-    let { longitude, latitude } = this.data.location
+    let { longitude, latitude } = this.data.mapInfo
     wx.getSystemInfo({
       success: (data) => {
         var height = data.windowHeight;
@@ -82,60 +100,15 @@ Page({
       }
     })
   },
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad: function (options) {
-    
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady: function () {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function () {
+  onLoad(option) {
     this.getFromStorage()
     this.setStaticMap()
   },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function () {
-  
+  onShow() {
+    
   },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function () {
-  
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh: function () {
-  
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom: function () {
-  
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function () {
-  
+  onHide() {
+    // 选择照片时加载
+    this.loading(true)
   }
 })

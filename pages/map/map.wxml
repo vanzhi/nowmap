@@ -11,10 +11,11 @@
     bindregionchange="regionChangeHandle">
   </map>
   <cover-view class="cover-location">
-    <cover-image class="user-logo" src="{{userInfo.avatarUrl}}"></cover-image>
+    <cover-image class="user-logo" src="{{userInfo.avatarUrl}}" bindtap="backToLocation"></cover-image>
   </cover-view>
 
   <cover-view class="cover-option">
+    <cover-view class="item">地区：{{mapInfo.area}}</cover-view>
     <cover-view class="item">位置：{{mapInfo.address}}</cover-view>
     <cover-view class="item"
       wx:for="{{checkboxGroup}}" 
