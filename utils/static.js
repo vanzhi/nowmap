@@ -11,3 +11,6 @@ const weather = {
   '飑': 9,
   '风': 9
 }
+module.exports = {
+  weather
+}

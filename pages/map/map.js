@@ -212,7 +212,7 @@ Page({
     this.amap.getWeather({
       success: (data) => {
         this.setData({
-          'mapInfo.weather': data,
+          'mapInfo.weather': data.weather.data,
           'checkboxGroup.weather.displayInfo': data.weather.data
         })
       },

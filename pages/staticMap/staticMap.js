@@ -2,6 +2,7 @@
 const amapFile = require('../../3rds/amap-wx.js');
 const app = getApp()
 const map = 'map'
+const statics = require('../../utils/static.js');
 
 Page({
   /**
@@ -39,23 +40,37 @@ Page({
     let mapInfo = wx.getStorageSync('mapInfo')
     this.setData({mapInfo})
   },
+  getWeatherImg(str) {
+    let { weather } = statics
+    let img = ''
+    for (let key in weather) {
+      if (str.indexOf(key) === -1) continue
+      img = `/resources/w${ weather[key]}.png`
+    }
+    return img
+  },
   canvasMaker() {
     let img = this.data.userImg || this.data.dfImg
     let ctx = wx.createCanvasContext('canvas')
     let sysWidth = this.data.systemInfo.width
     let sysHeight = this.data.systemInfo.height
+    let weatherImg = this.getWeatherImg(this.data.mapInfo.weather)
     ctx.clearRect(0, 0, sysWidth, sysHeight)
+    // 地图
     ctx.drawImage(img, 0, 0, sysWidth, sysHeight)
-    // todo-此处用png图修改
+    // todo-阴影
     ctx.setGlobalAlpha(0.25)
     const grd = ctx.createCircularGradient(sysWidth / 2, sysHeight / 2, sysHeight / 2)
     grd.addColorStop(0, 'white')
     grd.addColorStop(1, 'black')
     ctx.setFillStyle(grd)
     ctx.fillRect(0, 0, sysWidth, sysHeight)
-    // --
+    // 背景图
     ctx.setGlobalAlpha(0.75)
     ctx.drawImage(this.data.mapImg, 0, 0, sysWidth, sysHeight)
+    // 天气
+    ctx.drawImage(weatherImg, sysWidth - 100, 50, 50, 50)
+    // 日期
     ctx.draw()
     this.loading(false)
   },
