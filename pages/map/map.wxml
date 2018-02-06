@@ -15,7 +15,7 @@
   </cover-view>
 
   <cover-view class="cover-option">
-    <cover-view class="item">地区：{{mapInfo.area}}</cover-view>
+    <cover-view class="item">地区：{{mapInfo.area[0]}},{{mapInfo.area[1]}}</cover-view>
     <cover-view class="item">位置：{{mapInfo.address}}</cover-view>
     <cover-view class="item"
       wx:for="{{checkboxGroup}}" 

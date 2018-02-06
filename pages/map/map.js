@@ -51,6 +51,7 @@ function onSpeed(callback) {
 Page({
   mapCtx: null,
   amap: null,
+  speedListener : null,
   data: {
     userInfo: null,     // 用户信息
     markers : [],       // 地图标记点
@@ -63,11 +64,11 @@ Page({
       latitude  : 0,    // 纬度
       speed     : 0,    // 速度
       altitude  : 0,    // 海拔
+      temperature: 0,   // 气温
       weather   : '',   // 天气字符串
       address   : '',   // 地址描述
       area      : '',   // 地区
-      checked   : ['weather', 'speed', 'altitude'],
-      speedListener : null
+      checked   : ['weather', 'speed', 'altitude']
     },
     checkboxGroup: {
       weather:{
@@ -182,7 +183,7 @@ Page({
         let { province, district, township } = data[0].regeocodeData.addressComponent
         this.setData({ 
           'mapInfo.address' : data[0].desc,
-          'mapInfo.area': [province, district].join('，')
+          'mapInfo.area': [province, district]
         })
       },
       fail: (info) => {
@@ -213,6 +214,7 @@ Page({
       success: (data) => {
         this.setData({
           'mapInfo.weather': data.weather.data,
+          'mapInfo.temperature': data.temperature.data,
           'checkboxGroup.weather.displayInfo': data.weather.data
         })
       },
@@ -237,6 +239,6 @@ Page({
     this.setWeather()
   },
   onHide() {
-    clearInterval(this.data.speedListener)
+    clearInterval(this.speedListener)
   }
 })

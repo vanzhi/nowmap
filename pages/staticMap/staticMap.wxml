@@ -3,7 +3,7 @@
   <!-- <image src="{{src}}"></image> -->
   <canvas canvas-id="canvas" />
   <cover-view class="canvas-operate">
-    <cover-view class="button" bindtap="toChangeBgImg">更换背景图</cover-view >
-    <cover-view class="button">{{loading ? '载入中' : ''}}</cover-view >
+    <!-- <cover-view class="button" bindtap="toChangeBgImg">更换背景图</cover-view > -->
+    <!-- <cover-view class="button">{{loading ? '载入中' : ''}}</cover-view > -->
   </cover-view>
 </view>
