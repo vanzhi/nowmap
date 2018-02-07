@@ -11,6 +11,15 @@ const weather = {
   '飑': 9,
   '风': 9
 }
+const calendarText = {
+  
+}
+const bottomText = {
+
+}
+const descText = {
+
+}
 module.exports = {
   weather
 }

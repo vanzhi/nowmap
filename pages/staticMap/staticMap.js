@@ -58,6 +58,19 @@ const getAltitudeView = (altitude, max, min) => {
     h: 24
   }
 }
+// 附近view
+const getAddressView = (str, size) => {
+  let mt = str.match(/[a-zA-Z0-9]/g) || []
+  let l0 = str.length
+  let l1 = mt.length
+  return {
+    l: (l0 - l1 + 2) * size + l1 * (size - 5) + 32
+  }
+}
+// 文案定制
+const textView = (mapInfo) => {
+  
+}
 
 Page({
   /**
@@ -66,6 +79,8 @@ Page({
   data: {
     src: '',
     dfImg: `${baseDir}login_bg.jpg`,
+    codeImg: `${baseDir}code.jpg`,
+    locationImg: `${baseDir}l.png`,
     userImg: '',
     mapImg: '',
     userLogo: '',
@@ -103,7 +118,7 @@ Page({
       altitude: 200,            // 海拔
       temperature: 4,   
       weather: '多云',          // 天气字符串
-      address: '长宁区凌空soho附近',   // 地址描述
+      address: '长宁区凌soho空附近',   // 地址描述
       area: ['上海市', '长宁区'],   // 地区
     }
     this.setData({mapInfo})
@@ -111,7 +126,7 @@ Page({
   canvasMaker() {
     // 样式布局
     let headHeight = 45
-    let bottomHeight = 120
+    let bottomHeight = 160
     let logoR = 28
     // 获取日期
     let date = new Date()
@@ -225,7 +240,7 @@ Page({
     ctx.setFontSize(12)
     ctx.setTextAlign('center')
     ctx.setFillStyle('#ffffff')
-    ctx.fillText('宜· 重新开始', sysWidth - 65, headHeight + 115)
+    ctx.fillText('宜· 重新开始@', sysWidth - 65, headHeight + 115)
     // 底部-底色
     ctx.setFillStyle('#ffffff')
     ctx.fillRect(0, sysHeight - bottomHeight, sysWidth, bottomHeight)
@@ -233,13 +248,27 @@ Page({
     ctx.setFillStyle('#e9d7bb')
     ctx.fillRect(0, sysHeight - bottomHeight - 2, sysWidth, 2)
     // 底部-logo
-    
+    ctx.drawImage(this.data.codeImg, sysWidth / 2 - 25, sysHeight - bottomHeight + 10, 50, 50)
     // 底部-描述
-
+    ctx.setFontSize(15)
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#333333')
+    ctx.fillText('我飞行的速度，谁能比我更快？', sysWidth / 2, sysHeight - bottomHeight + 80)
     // 底部-附近
-
+    let addressView = getAddressView(this.data.mapInfo.address, 12);
+    ctx.drawImage(this.data.locationImg, sysWidth / 2 - addressView.l / 2, sysHeight - bottomHeight + 92, 25, 25)
+    ctx.setFontSize(12)
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#666666')
+    ctx.fillText(`我在${this.data.mapInfo.address}`, sysWidth / 2 + 10, sysHeight - bottomHeight + 110)
+    // 底部-线
+    ctx.setFillStyle('#efefef')
+    ctx.fillRect(sysWidth / 2 - addressView.l / 2, sysHeight - bottomHeight + 120, addressView.l, 1)
     // 底部-称号
-
+    ctx.setFontSize(12)
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#999999')
+    ctx.fillText(`走路都有风`, sysWidth / 2, sysHeight - bottomHeight + 138)
     // 地图-头像
     ctx.beginPath()
     ctx.arc(sysWidth / 2, sysHeight / 2 - 60, logoR, 0, 2 * Math.PI)
