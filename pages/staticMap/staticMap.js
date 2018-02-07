@@ -20,7 +20,7 @@ const wImg = (str) => {
 }
 // 日期图
 const dImgs = (d) => {
-  d = d.split('')
+  d = `0${d.toString()}`.substr(-2, 2).split('')
   return d.map(key => `${baseDir}${key}.png`)
 }
 // 年份图
@@ -111,14 +111,15 @@ Page({
   canvasMaker() {
     // 样式布局
     let headHeight = 45
-    let bottomHeight = 80
+    let bottomHeight = 120
     let logoR = 28
     // 获取日期
     let date = new Date()
-    let [d, m, y] = [`0${date.getDate()}`.substr(-2, 2), date.getMonth() + 1, date.getFullYear().toString()]
+    let [d, m, y] = [date.getDate(), date.getMonth() + 1, date.getFullYear().toString()]
     // 日期图片
     let dateImgs = dImgs(d)
     let monthImg = mImg(m)
+    let numMonthImgs = dImgs(m)
     let yearImgs = yImgs(y)
     // 背景图
     let bgImg = this.data.userImg || this.data.dfImg
@@ -166,12 +167,14 @@ Page({
     let speed = this.data.mapInfo.speed
     let speedView = getSpeedView(speed, sysWidth / 2 - logoR, 20)
     let speedCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) / 3]
+    ctx.beginPath()
     ctx.arc(speedCentre[0], speedCentre[1], speedView.r, 0, 2 * Math.PI)
     ctx.setGlobalAlpha(0.2)
     ctx.setFillStyle('#000000')
     ctx.fill()
-    ctx.setGlobalAlpha(1)
+    ctx.closePath()
     // 地图-速度-块
+    ctx.setGlobalAlpha(1)
     ctx.setFillStyle('#666666')
     ctx.fillRect(speedCentre[0] - speedView.w / 2, speedCentre[1] - speedView.h / 2, speedView.w, speedView.h)
     // 地图-速度-图标
@@ -184,12 +187,14 @@ Page({
     let altitude = this.data.mapInfo.altitude
     let altitudeView = getAltitudeView(altitude, sysWidth / 2 - logoR, 20)
     let altitudeCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) * 2 / 3]
+    ctx.beginPath()
     ctx.arc(altitudeCentre[0], altitudeCentre[1], altitudeView.r, 0, 2 * Math.PI)
     ctx.setGlobalAlpha(0.2)
     ctx.setFillStyle('#000000')
     ctx.fill()
-    ctx.setGlobalAlpha(1)
+    ctx.closePath()
     // 地图-海拔-块
+    ctx.setGlobalAlpha(1)
     ctx.setFillStyle('#666666')
     ctx.fillRect(altitudeCentre[0] - altitudeView.w / 2, altitudeCentre[1] - altitudeView.h / 2, altitudeView.w, altitudeView.h)
     // 地图-速度-图标
@@ -198,12 +203,37 @@ Page({
     ctx.setFillStyle('#ffffff')
     ctx.setTextAlign('center')
     ctx.fillText(`${altitude}m/s`, altitudeCentre[0] + 9, altitudeCentre[1] + altitudeView.h / 4)
-    // 日历
-    
+    // 日历-底色
+    ctx.setGlobalAlpha(0.5)
+    ctx.setFillStyle('#ffffff')
+    ctx.fillRect(sysWidth - 110, headHeight + 20, 90, 80)
+    // 日历-线条
+    ctx.setGlobalAlpha(1)
+    ctx.setFillStyle('#666666')
+    ctx.fillRect(sysWidth - 120, headHeight + 10, 110, 6)
+    ctx.fillRect(sysWidth - 120, headHeight + 20, 110, 1)
+    ctx.fillRect(sysWidth - 110, headHeight + 20, 1, 100)
+    ctx.fillRect(sysWidth - 110, headHeight + 100, 90, 20)
+    // 日历-日期
+    dateImgs.map((res, index) => {
+      ctx.drawImage(res, index * 18 + sysWidth - 85, headHeight + 45, 20, 40)
+    })
+    numMonthImgs.map((res, index) => {
+      ctx.drawImage(res, index * 5 + sysWidth - 45, headHeight + 30, 6, 12)
+    })
+    // 日历-描述
+    ctx.setFontSize(12)
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#ffffff')
+    ctx.fillText('宜·重新开始', sysWidth - 65, headHeight + 115)
+    // 底部-底色
+    ctx.setFillStyle('#ffffff')
+    ctx.fillRect(0, sysHeight - bottomHeight, sysWidth, bottomHeight)
     // 底部-line
-
+    ctx.setFillStyle('#e9d7bb')
+    ctx.fillRect(0, sysHeight - bottomHeight - 2, sysWidth, 2)
     // 底部-logo
-
+    
     // 底部-描述
 
     // 底部-附近
