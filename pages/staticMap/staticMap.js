@@ -225,7 +225,7 @@ Page({
     ctx.setFontSize(12)
     ctx.setTextAlign('center')
     ctx.setFillStyle('#ffffff')
-    ctx.fillText('宜·重新开始', sysWidth - 65, headHeight + 115)
+    ctx.fillText('宜· 重新开始', sysWidth - 65, headHeight + 115)
     // 底部-底色
     ctx.setFillStyle('#ffffff')
     ctx.fillRect(0, sysHeight - bottomHeight, sysWidth, bottomHeight)
