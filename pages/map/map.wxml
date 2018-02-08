@@ -2,46 +2,32 @@
 <view class="map-container">
   <map 
     class="map" id="map" 
-    show-location="{{false}}" 
+    show-location="{{false}}"  
     controls="{{controls}}" 
     markers="{{markers}}" 
     scale="{{mapInfo.scale}}" 
     longitude="{{mapInfo.longitude}}" 
-    latitude="{{mapInfo.latitude}}" 
-    bindregionchange="regionChangeHandle">
+    latitude="{{mapInfo.latitude}}">
   </map>
+  <!-- <cover-view class="cover-mask"></cover-view> -->
+
   <cover-view class="cover-location">
+    <!-- <cover-view class="location-line"></cover-view> -->
     <cover-image class="user-logo" src="{{userInfo.avatarUrl}}" bindtap="backToLocation"></cover-image>
   </cover-view>
 
   <cover-view class="cover-option">
-    <cover-view class="item">地区：{{mapInfo.area[0]}},{{mapInfo.area[1]}}</cover-view>
-    <cover-view class="item">位置：{{mapInfo.address}}</cover-view>
-    <cover-view class="item"
-      wx:for="{{checkboxGroup}}" 
-      wx:key="{{index}}" 
-      wx:if="{{item.checked}}">
-      {{item.name}}：{{item.displayInfo}}
-    </cover-view>
+    <cover-view class="item">地区：{{mapInfo.area.length ? mapInfo.area[0] + ',' + mapInfo.area[1] : '-'}}</cover-view>
+    <cover-view class="item">天气：{{mapInfo.temperature}}℃ | {{mapInfo.weather}}</cover-view>
+    <cover-view class="item">速度：{{mapInfo.speed}}m/s</cover-view>
+    <cover-view class="item">海拔：{{mapInfo.altitude}}m</cover-view>
   </cover-view>
 
-  <!-- <cover-view class="cover-button">
-    <cover-view bindtap="toStaticMap" class="button">下一步</cover-view>
+  <cover-view class="location-reset" bindtap="resetLocation">
+    <cover-image class="location-reset-icon" src="/resources/p0.png"></cover-image>
   </cover-view>
-
-  <cover-view class="cover-option">
-    <cover-view>
-      <cover-view class="checkbox selected">
-        <cover-view class="icon"></cover-view>
-        <cover-view class="text">123333</cover-view>
-      </cover-view>
-    </cover-view>
-  </cover-view> -->
-  
 </view>
-<view class="map-option"> 
-  <checkbox-group bindchange="checkboxChangeHandle">
-    <checkbox wx:for="{{checkboxGroup}}"  wx:key="{{item.value}}" checked="{{item.checked}}" value="{{index}}">{{item.name}}</checkbox>
-  </checkbox-group>
+<cover-view class="primary-line"></cover-view>
+<view class="map-option">
   <view class="btn-buttom" bindtap="toStaticMap">下一步</view>
 </view>

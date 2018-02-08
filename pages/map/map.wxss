@@ -4,7 +4,7 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom: 220rpx;
+  bottom: 300rpx;
 }
 .map{
   width: 100%;
@@ -63,10 +63,17 @@ text{
 }
 
 /* 地图覆盖物 */
+.cover-mask {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
 .cover-location {
   position: absolute;
   overflow: visible;
-  top: calc(50% - 200rpx);
+  top: calc(50% - 150rpx);
   left: calc(50% - 60rpx);
   height: 120rpx;
   width: 120rpx;
@@ -74,12 +81,11 @@ text{
 .location-line {
   position: absolute;
   display: block;
-  content: ' ';
   left: 60rpx;
-  bottom: -70rpx;
-  height: 100rpx;
-  width: 0;
-  border-left: 1px dashed #000;
+  bottom: -20rpx;
+  height: 50rpx;
+  width: 2px;
+  background: #666;
   z-index: 1;
 }
 .cover-button {
@@ -92,13 +98,13 @@ text{
 .cover-option {
   position: absolute;
   padding: 15rpx 20rpx;
-  width: 56%;
+  width: 100%;
   top: 10rpx;
   left: 10rpx;
   background: rgba(0, 0, 0, 0.5);
-  border-radius: 5px;
+   border-radius: 5px; 
   color: #fff;
-  font-size: 14px;
+  font-size: 12px;
 }
 .cover-option .item {
   margin: 10rpx;
@@ -109,11 +115,44 @@ text{
   height: 100rpx;
   width: 100rpx;
   border-radius: 50rpx;
-  border: 15rpx solid #fff;
+  border: 12rpx solid #fff;
   box-sizing: border-box;
   box-shadow: 0 0 5px 0 #000;
   z-index: 5;
+  background: #ccc;
 }
 .user-frame {
   
+}
+.location-reset {
+  position: absolute;
+  left: 20rpx;
+  bottom: 20rpx;
+  height: 80rpx;
+  width: 80rpx;
+  background: #fff;
+  border-radius: 10rpx;
+  border: 1rpx #ccc solid;
+}
+.location-reset-icon {
+  position: absolute;
+  width: 40rpx;
+  height: 40rpx;
+  /* background: #999; */
+  border-radius: 20rpx;
+  top: 20rpx;
+  left: 20rpx;
+  box-sizing: border-box;
+}
+.location-reset:active {
+   background: #ccc; 
+}
+/*其他*/
+.primary-line {
+  position: absolute;
+  bottom: 300rpx;
+  left:0;
+  height: 5rpx;
+  width: 100%;
+  background: #e9d7bb;
 }

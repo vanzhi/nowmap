@@ -4,6 +4,7 @@ const end       = 'end'
 const app       = getApp()
 const EARTH_RADIUS = 6378137.0;    //单位M
 const PI = Math.PI;
+const baseDir = '/resources/'
 
 function getRad(d) {
   return d * PI / 180.0;
@@ -20,7 +21,7 @@ function getGreatCircleDistance(lat1, lng1, lat2, lng2) {
   s = s * EARTH_RADIUS;
   s = Math.round(s * 10000) / 10000.0;
 
-  return s;
+  return s; 
 }
 
 // 5秒内通过距离求得平均速
@@ -31,21 +32,39 @@ function onSpeed(callback) {
   let interval = setInterval(_ => {
     wx.getLocation({
       success: ({ latitude, longitude, altitude, speed }) => {
-        // sites.push([latitude, longitude])
-        // if (sites.length > 5) {
-        //   sites = sites.slice(sites.length - 5)
-        // }
-        // if (s) {
-        //   let [lat1, lng1] = sites[0]
-        //   let [lat2, lng2] = sites[sites.length - 1]
-        //   v = getGreatCircleDistance(lat1, lng1, lat2, lng2) / s
-        // }
-        // s = sites.length
-        callback(speed, altitude)
+        callback(speed, altitude, latitude, longitude)
       }
     })
   }, 1000)
   return interval
+}
+
+function setScale(altitude) {
+  let scale = 16
+  if (altitude <= 0) {
+    scale = 18
+  } else if (altitude <= 10) {
+    scale = 16
+  } else if (altitude <= 20) {
+    scale = 15
+  } else if (altitude <= 200) {
+    scale = 14
+  } else if (altitude <= 500) {
+    scale = 13
+  } else if (altitude <= 1000) {
+    scale = 12
+  } else if (altitude <= 2000) {
+    scale = 11
+  } else if (altitude <= 4000) {
+    scale = 10
+  } else if (altitude <= 8000) {
+    scale = 9
+  } else if (altitude <= 12000) {
+    scale = 8
+  } else if (altitude > 12000) (
+    scale = 7
+  )
+  return scale
 }
 
 Page({
@@ -57,9 +76,8 @@ Page({
     markers : [],       // 地图标记点
     controls: [],
     sites: [],          // 坐标点
-    scale: 16,          // 初始放大倍数
     mapInfo: {
-      scale     : 16,       // 默认地图比例
+      scale     : 16,       // 最后获得地图比例
       longitude : 0,    // 经度
       latitude  : 0,    // 纬度
       speed     : 0,    // 速度
@@ -67,25 +85,8 @@ Page({
       temperature: 0,   // 气温
       weather   : '',   // 天气字符串
       address   : '',   // 地址描述
-      area      : '',   // 地区
+      area      : [],   // 地区
       checked   : ['weather', 'speed', 'altitude']
-    },
-    checkboxGroup: {
-      weather:{
-        checked: true,
-        name: '天气',
-        displayInfo: ''
-      }, 
-      speed: {
-        checked: true,
-        name: '速度',
-        displayInfo: 0
-      }, 
-      altitude: {
-        checked: true,
-        name: '海拔',
-        displayInfo: 0
-      }
     }
   },
   // 跳转到静态图页面
@@ -103,39 +104,9 @@ Page({
       url: '../staticMap/staticMap?origin=map'
     })
   },
-  // 选择项改变
-  checkboxChangeHandle(e) {
-    let values = e.detail.value
-    for (let key in this.data.checkboxGroup) {
-      this.setData({
-        [`checkboxGroup.${key}.checked`] : values.indexOf(key) > -1
-      })
-    }
-    this.setData({
-      'mapInfo.checked': [...values]
-    })
-  },
-  // 监听拖动地图事件 - 静止
-  regionChangeHandle(e) {
-    return;
-    switch(e.type) {
-      case end:
-        this.mapCtx.getCenterLocation({
-          success: (data) => {
-            let { longitude, latitude } = data
-            this.setData({
-              'mapInfo.latitude': latitude,
-              'mapInfo.longitude': longitude,
-              'markers': util.setMarkers({ latitude, longitude })
-            })
-          }
-        })
-        break;
-    }
-  },
-  // 回到原始点
-  backToLocation() {
-    
+  // 重新定位
+  resetLocation() {
+    this.setLocation(true)
   },
   // 设置存储到storage
   setToStorage(obj) {
@@ -143,32 +114,58 @@ Page({
       wx.setStorageSync(key, obj[key])
     }
   },
-  // 设置速度、海拔信息
+  // 设置速度、海拔、经纬度信息
   setPosition() {
-    let index = 0
-    let scale = this.data.scale
-    // todo 设置scale
-    this.speedListener = onSpeed((speed, altitude) => {
+    this.speedListener = onSpeed((speed, altitude, la1, lo1) => {
+      // if (speed < 0) {
+        let { latitude, longitude } = this.data.mapInfo
+        // speed = getGreatCircleDistance(latitude, longitude, la1, lo1)
+        //debug
+        // speed = [latitude, longitude, la1, lo1].join('|')
+      // }
+      speed = speed < 0 ? 0 : Math.round(speed * 100) / 100
+      altitude = Math.round(altitude)
       this.setData({
-        'scale': scale,
         'mapInfo.speed': speed,
         'mapInfo.altitude': altitude,
-        'checkboxGroup.speed.displayInfo': speed.toFixed(2) + 'm/s',
-        'checkboxGroup.altitude.displayInfo': altitude.toFixed(2) + 'm'
       })
     })
   },
   // 设置当前地理信息-坐标/高度/速度
-  setLocation() {
+  setLocation(isReload = false) {
     wx.getLocation({
       type: 'gcj02',
       altitude: true,
       success: (data) => {
-        let { longitude, latitude, altitude } = data
-        this.setAddress({ longitude, latitude })
-        this.setData({
-          'mapInfo': { ...this.data.mapInfo, longitude, latitude, altitude },
-          'markers': util.setMarkers({ latitude, longitude })
+        let { longitude, latitude, altitude, speed } = data
+        speed = speed < 0 ? 0 : Math.round(speed * 100) / 100
+        altitude = Math.round(altitude)
+        // 初始化
+        if (!isReload) {
+          let scale = 18
+          scale = setScale(altitude)
+          this.setAddress({ longitude, latitude })
+          this.setData({
+            'mapInfo.latitude': latitude,
+            'mapInfo.longitude': longitude,
+            'mapInfo.altitude': altitude,
+            'mapInfo.speed': speed,
+            'mapInfo.scale': scale,
+          })
+          return;
+        }
+        // 移动marker
+        this.mapCtx.translateMarker({ 
+          markerId: 0, 
+          destination: { latitude, longitude },
+          duration: 300,
+          animationEnd: () => {
+            this.setAddress({ longitude, latitude })
+            this.setData({
+              'mapInfo.latitude': latitude,
+              'mapInfo.longitude': longitude
+            })
+          }
         })
       }
     })
@@ -183,7 +180,8 @@ Page({
         let { province, district, township } = data[0].regeocodeData.addressComponent
         this.setData({ 
           'mapInfo.address' : data[0].desc,
-          'mapInfo.area': [province, district]
+          'mapInfo.area': [province, district],
+          'markers': util.setMarkers({ latitude, longitude, content: data[0].desc })
         })
       },
       fail: (info) => {
@@ -223,6 +221,23 @@ Page({
       }
     })
   },
+  setControls() {
+    wx.getSystemInfo({
+      success: ({ windowHeight, windowWidth }) => {
+        let controls = [{
+          position : {
+            id: 1,
+            left: windowWidth /2 - 5,
+            top: (windowHeight - 220) / 2 + 45,
+            width: 10,
+            height: 10
+          },
+          iconPath: `${baseDir}dot.png`
+        }]
+        this.setData({ controls })
+      },
+    })
+  },
   onLoad: function (options) {
     // 创建map上下文-微信/高德
     this.mapCtx = wx.createMapContext('map')
@@ -237,6 +252,8 @@ Page({
     this.setUserInfo()
     // 获取天气信息并记录
     this.setWeather()
+    // 设置controls
+    // this.setControls()
   },
   onHide() {
     clearInterval(this.speedListener)

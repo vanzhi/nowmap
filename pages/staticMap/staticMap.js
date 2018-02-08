@@ -5,6 +5,7 @@ const app = getApp()
 const map = 'map'
 const statics = require('../../utils/static.js')
 const utils = require('../../utils/util.js')
+const PI = 3.14
 
 // 月份图
 const mImg = key => `${baseDir}m${key}.png`
@@ -31,13 +32,19 @@ const yImgs = (y) => {
   return y.map(key => `${baseDir}${key}.png`)
 }
 // 速度view
-const getSpeedView = (speed, max, min) => {
-  speed = speed.toFixed(0) * 1
+const getSpeedView = (speed, max, min = 16) => {
   let maxSpeed = 260
-  let w = speed.toString().length * 14 + 50
-  let r = speed / maxSpeed
-      r = r > max ? max : (r < min ? min : r)
+  let w = speed.toString().length * 10 + 65
+  let r = Math.sqrt(speed / maxSpeed * max * max) + min
+      r = r > max ? max : r
+  let vs = [0, 3, 8, 40, 100, 140, -1]
   let logo = `${baseDir}t1.png`
+  for (let i = 0; i < vs.length; i++) {
+    if (speed <= vs[i] || vs[i] === -1) {
+      logo = `${baseDir}t${i + 1}.png`
+      break
+    }
+  }
   return {
     logo,
     r,
@@ -46,12 +53,11 @@ const getSpeedView = (speed, max, min) => {
   }
 }
 // 海拔view
-const getAltitudeView = (altitude, max, min) => {
-  altitude = altitude.toFixed(0) * 1
-  let maxAltitude = 260
-  let w = altitude.toString().length * 14 + 40
-  let r = altitude / maxAltitude
-  r = r > max ? max : (r < min ? min : r)
+const getAltitudeView = (altitude, max, min = 16) => {
+  let maxAltitude = 5000
+  let w = altitude.toString().length * 10 + 50
+  let r = Math.sqrt(altitude / maxAltitude * max * max) + min
+      r = r > max ? max : r
   let logo = `${baseDir}h.png`
   return {
     logo,
@@ -107,12 +113,12 @@ Page({
   },
   // 读取本地缓存数据
   getFromStorage() {
-    // debug wx.getStorage('mapInfo')
-    let mapInfo = {
+    // debug wx.getStorageSync('mapInfo')
+    let mapInfo = wx.getStorageSync('mapInfo') || {
       scale: 16,                // 默认地图比例
       longitude: 121.42394,     // 经度
       latitude: 31.22024,       // 纬度
-      speed: 10,                // 速度
+      speed: 20,                // 速度
       altitude: 200,            // 海拔
       temperature: 4,   
       weather: '多云',          // 天气字符串
@@ -142,6 +148,7 @@ Page({
     let ctx = wx.createCanvasContext('canvas')
     let sysWidth = this.data.systemInfo.width
     let sysHeight = this.data.systemInfo.height
+    ctx.setFontSize(14)
     ctx.clearRect(0, 0, sysWidth, sysHeight)
     // 背景图
     // ctx.drawImage(bgImg, 0, 0, sysWidth, sysHeight)
@@ -155,30 +162,9 @@ Page({
     // 地图
     ctx.setGlobalAlpha(1)
     ctx.drawImage(this.data.mapImg, 0, 0, sysWidth, sysHeight)
-    // 头部-矩形
-    ctx.setFillStyle('#ffffff')
-    ctx.fillRect(0, 0, sysWidth, headHeight)
-    // 头部-日期
-    dateImgs.map((res, index) => {
-      ctx.drawImage(res, index * 11 + 15, 11, 11, 22)
-    })
-    ctx.drawImage(monthImg, 45, 15, 20, 20)
-    yearImgs.map((res, index) => {
-      ctx.drawImage(res, index * 5 + 63, 19, 6, 12)
-    })
-    // 头部-地区
-    ctx.setFillStyle('#000000')
-    ctx.setTextAlign('center')
-    ctx.setFontSize(14)
-    ctx.fillText(this.data.mapInfo.area.join([' · ']), sysWidth/2, 28)
-    // 头部-天气
-    ctx.setFillStyle('#cccccc')
-    ctx.setTextAlign('right')
-    ctx.fillText(`${this.data.mapInfo.temperature}℃`, sysWidth - 50, 28)
-    ctx.drawImage(weatherImg, sysWidth - 40, 10, 25, 25)
     // 地图-速度-圆
     let speed = this.data.mapInfo.speed
-    let speedView = getSpeedView(speed, sysWidth / 2 - logoR, 20)
+    let speedView = getSpeedView(speed, sysWidth / 4 - logoR / 2)
     let speedCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) / 3]
     ctx.beginPath()
     ctx.arc(speedCentre[0], speedCentre[1], speedView.r, 0, 2 * Math.PI)
@@ -188,7 +174,7 @@ Page({
     ctx.closePath()
     // 地图-速度-块
     ctx.setGlobalAlpha(1)
-    ctx.setFillStyle('#666666')
+    ctx.setFillStyle('#333333')
     ctx.fillRect(speedCentre[0] - speedView.w / 2, speedCentre[1] - speedView.h / 2, speedView.w, speedView.h)
     // 地图-速度-图标
     ctx.drawImage(speedView.logo, speedCentre[0] - speedView.w / 2 + 5, speedCentre[1] - speedView.h / 2 + 2, 20, 20)
@@ -198,7 +184,7 @@ Page({
     ctx.fillText(`${speed}m/s`, speedCentre[0] + 9, speedCentre[1] + speedView.h/4)
     // 地图-海拔-圆
     let altitude = this.data.mapInfo.altitude
-    let altitudeView = getAltitudeView(altitude, sysWidth / 2 - logoR, 20)
+    let altitudeView = getAltitudeView(altitude, sysWidth / 4 - logoR / 2 - 10)
     let altitudeCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) * 2 / 3]
     ctx.beginPath()
     ctx.arc(altitudeCentre[0], altitudeCentre[1], altitudeView.r, 0, 2 * Math.PI)
@@ -208,21 +194,22 @@ Page({
     ctx.closePath()
     // 地图-海拔-块
     ctx.setGlobalAlpha(1)
-    ctx.setFillStyle('#666666')
+    ctx.setFillStyle('#333333')
     ctx.fillRect(altitudeCentre[0] - altitudeView.w / 2, altitudeCentre[1] - altitudeView.h / 2, altitudeView.w, altitudeView.h)
     // 地图-海拔-图标
-    ctx.drawImage(altitudeView.logo, altitudeCentre[0] - altitudeView.w / 2 + 8, altitudeCentre[1] - altitudeView.h / 2 + 2, 20, 20)
+    ctx.drawImage(altitudeView.logo, altitudeCentre[0] - altitudeView.w / 2 + 5, altitudeCentre[1] - altitudeView.h / 2 + 2, 20, 20)
     // 地图-海拔-描述
     ctx.setFillStyle('#ffffff')
     ctx.setTextAlign('center')
     ctx.fillText(`${altitude}m`, altitudeCentre[0] + 9, altitudeCentre[1] + altitudeView.h / 4)
+
     // 日历-底色
     ctx.setGlobalAlpha(0.5)
     ctx.setFillStyle('#ffffff')
     ctx.fillRect(sysWidth - 110, headHeight + 20, 90, 80)
     // 日历-线条
     ctx.setGlobalAlpha(1)
-    ctx.setFillStyle('#666666')
+    ctx.setFillStyle('#333333')
     ctx.fillRect(sysWidth - 120, headHeight + 10, 110, 6)
     ctx.fillRect(sysWidth - 120, headHeight + 20, 110, 1)
     ctx.fillRect(sysWidth - 110, headHeight + 20, 1, 100)
@@ -240,6 +227,29 @@ Page({
     ctx.setTextAlign('center')
     ctx.setFillStyle('#ffffff')
     ctx.fillText(calendarText, sysWidth - 65, headHeight + 115)
+
+    // 头部-矩形
+    ctx.setFillStyle('#ffffff')
+    ctx.fillRect(0, 0, sysWidth, headHeight)
+    // 头部-日期
+    dateImgs.map((res, index) => {
+      ctx.drawImage(res, index * 11 + 15, 11, 11, 22)
+    })
+    ctx.drawImage(monthImg, 45, 15, 20, 20)
+    yearImgs.map((res, index) => {
+      ctx.drawImage(res, index * 5 + 63, 19, 6, 12)
+    })
+    // 头部-地区
+    ctx.setFillStyle('#000000')
+    ctx.setTextAlign('center')
+    ctx.setFontSize(14)
+    ctx.fillText(this.data.mapInfo.area.join([' · ']), sysWidth / 2, 28)
+    // 头部-天气
+    ctx.setFillStyle('#cccccc')
+    ctx.setTextAlign('right')
+    ctx.fillText(`${this.data.mapInfo.temperature}℃`, sysWidth - 50, 28)
+    ctx.drawImage(weatherImg, sysWidth - 40, 10, 25, 25)
+
     // 底部-底色
     ctx.setFillStyle('#ffffff')
     ctx.fillRect(0, sysHeight - bottomHeight, sysWidth, bottomHeight)
@@ -317,8 +327,8 @@ Page({
         })
         apmap.getStaticmap({
           zoom: this.data.mapInfo.scale,
+          scale: 2, // 调用高清图 和小程序原生map中的scale不同意
           size: size,
-          scale: 2,
           location: `${longitude},${latitude}`,
           markers: markers,
           success: (data) => {
@@ -347,7 +357,7 @@ Page({
     }
   },
   getMarker(longitude, latitude) {
-    let style = ['large', '0xffa500', '']
+    let style = ['small', '0xffa500', '']
     return `${style.join(',')}:${longitude},${latitude}`
   },
   onLoad(option) {
