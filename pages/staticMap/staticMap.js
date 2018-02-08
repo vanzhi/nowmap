@@ -4,6 +4,8 @@ const amapFile = require('../../3rds/amap-wx.js')
 const app = getApp()
 const map = 'map'
 const statics = require('../../utils/static.js')
+const utils = require('../../utils/util.js')
+
 // 月份图
 const mImg = key => `${baseDir}m${key}.png`
 // 天气图
@@ -47,7 +49,7 @@ const getSpeedView = (speed, max, min) => {
 const getAltitudeView = (altitude, max, min) => {
   altitude = altitude.toFixed(0) * 1
   let maxAltitude = 260
-  let w = altitude.toString().length * 14 + 50
+  let w = altitude.toString().length * 14 + 40
   let r = altitude / maxAltitude
   r = r > max ? max : (r < min ? min : r)
   let logo = `${baseDir}h.png`
@@ -66,10 +68,6 @@ const getAddressView = (str, size) => {
   return {
     l: (l0 - l1 + 2) * size + l1 * (size - 5) + 32
   }
-}
-// 文案定制
-const textView = (mapInfo) => {
-  
 }
 
 Page({
@@ -212,12 +210,12 @@ Page({
     ctx.setGlobalAlpha(1)
     ctx.setFillStyle('#666666')
     ctx.fillRect(altitudeCentre[0] - altitudeView.w / 2, altitudeCentre[1] - altitudeView.h / 2, altitudeView.w, altitudeView.h)
-    // 地图-速度-图标
-    ctx.drawImage(altitudeView.logo, altitudeCentre[0] - altitudeView.w / 2 + 5, altitudeCentre[1] - altitudeView.h / 2 + 2, 20, 20)
-    // 地图-速度-描述
+    // 地图-海拔-图标
+    ctx.drawImage(altitudeView.logo, altitudeCentre[0] - altitudeView.w / 2 + 8, altitudeCentre[1] - altitudeView.h / 2 + 2, 20, 20)
+    // 地图-海拔-描述
     ctx.setFillStyle('#ffffff')
     ctx.setTextAlign('center')
-    ctx.fillText(`${altitude}m/s`, altitudeCentre[0] + 9, altitudeCentre[1] + altitudeView.h / 4)
+    ctx.fillText(`${altitude}m`, altitudeCentre[0] + 9, altitudeCentre[1] + altitudeView.h / 4)
     // 日历-底色
     ctx.setGlobalAlpha(0.5)
     ctx.setFillStyle('#ffffff')
@@ -237,23 +235,31 @@ Page({
       ctx.drawImage(res, index * 5 + sysWidth - 45, headHeight + 30, 6, 12)
     })
     // 日历-描述
+    let calendarText = utils.calendarText()
     ctx.setFontSize(12)
     ctx.setTextAlign('center')
     ctx.setFillStyle('#ffffff')
-    ctx.fillText('宜· 重新开始@', sysWidth - 65, headHeight + 115)
+    ctx.fillText(calendarText, sysWidth - 65, headHeight + 115)
     // 底部-底色
     ctx.setFillStyle('#ffffff')
     ctx.fillRect(0, sysHeight - bottomHeight, sysWidth, bottomHeight)
     // 底部-line
     ctx.setFillStyle('#e9d7bb')
     ctx.fillRect(0, sysHeight - bottomHeight - 2, sysWidth, 2)
+    // 底部-标签
+    ctx.fillRect(sysWidth / 2 - 40, sysHeight - bottomHeight - 20, 80, 20)
+    ctx.setFontSize(10)
+    ctx.setTextAlign('center')
+    ctx.setFillStyle('#ffffff')
+    ctx.fillText('我的地图标签', sysWidth / 2, sysHeight - bottomHeight - 6)
     // 底部-logo
     ctx.drawImage(this.data.codeImg, sysWidth / 2 - 25, sysHeight - bottomHeight + 10, 50, 50)
     // 底部-描述
+    let descText = utils.descText(this.data.mapInfo)
     ctx.setFontSize(15)
     ctx.setTextAlign('center')
     ctx.setFillStyle('#333333')
-    ctx.fillText('我飞行的速度，谁能比我更快？', sysWidth / 2, sysHeight - bottomHeight + 80)
+    ctx.fillText(descText, sysWidth / 2, sysHeight - bottomHeight + 80)
     // 底部-附近
     let addressView = getAddressView(this.data.mapInfo.address, 12);
     ctx.drawImage(this.data.locationImg, sysWidth / 2 - addressView.l / 2, sysHeight - bottomHeight + 92, 25, 25)
@@ -265,10 +271,11 @@ Page({
     ctx.setFillStyle('#efefef')
     ctx.fillRect(sysWidth / 2 - addressView.l / 2, sysHeight - bottomHeight + 120, addressView.l, 1)
     // 底部-称号
+    let titleText = utils.titleText(this.data.mapInfo)
     ctx.setFontSize(12)
     ctx.setTextAlign('center')
     ctx.setFillStyle('#999999')
-    ctx.fillText(`走路都有风`, sysWidth / 2, sysHeight - bottomHeight + 138)
+    ctx.fillText(titleText, sysWidth / 2, sysHeight - bottomHeight + 138)
     // 地图-头像
     ctx.beginPath()
     ctx.arc(sysWidth / 2, sysHeight / 2 - 60, logoR, 0, 2 * Math.PI)
