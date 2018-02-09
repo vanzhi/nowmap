@@ -76,45 +76,121 @@ const getAddressView = (str, size) => {
   }
 }
 
+// 生成静态图
+const getStaticMap = (config) => {
+  let uri = 'https://apis.map.qq.com/ws/staticmap/v2/?'
+  let params = []
+  for(let key in config) {
+    switch(key) {
+      case 'markers':
+        config[key].map((item, index) => {
+          let m = `size:mid|color:orange|${item.latitude},${item.longitude}`
+          params.push(`${key}=${m}`)
+        })
+        break;
+      default:
+        params.push(`${key}=${config[key]}`)
+    }
+  }
+  return uri + params.join('&')
+}
+
 Page({
   /**
    * 页面的初始数据
    */
+  saving: false,
   data: {
+    progress: 0,
     src: '',
     dfImg: `${baseDir}login_bg.jpg`,
     codeImg: `${baseDir}code.jpg`,
     locationImg: `${baseDir}l.png`,
+    shadowImg: `${baseDir}bg.jpg`,
     userImg: '',
     mapImg: '',
-    userLogo: '',
     mapInfo: {},
+    shareVisible: false,
     userInfo: null,
-    loading: true
+    animationData: {},
+    canUseAnimation: true
   },
-  loading(bool) {
-    this.setData({
-      loading : bool || false
-    })
-  },
-  // 更换背景图
-  toChangeBgImg() {
-    wx.chooseImage({
-      count: 1,
-      success: ({ tempFilePaths }) => {
-        this.setData({ userImg: tempFilePaths[0] })
-        this.canvasMaker()
+  onShareAppMessage: function (res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      title: '记录你在旅途中的此时此刻',
+      path: '/pages/map/map',
+      success: function (res) {
+        // 转发成功
       },
-      fail: () => {
-        // 没选择任何图片时
-        this.loading(false)
+      fail: function (res) {
+        // 转发失败
+      }
+    }
+  },
+  setAnimation() {
+    let canUseAnimation = wx.canIUse('createAnimation')
+    if (canUseAnimation) {
+      var animation = wx.createAnimation({
+        duration: 300,
+        timingFunction: 'ease'
+      })
+      this.animation = animation
+    }
+    this.setData({ canUseAnimation })
+    this.changeShareVisible()
+  },
+  // 设置分享按钮可见
+  changeShareVisible() {
+    this.setData({
+      shareVisible: !this.data.shareVisible
+    })
+    if (this.data.canUseAnimation) {
+      let left = this.data.shareVisible ? -100 : 0
+      this.animation.translateX(left).step()
+      this.setData({
+        animationData: this.animation.export()
+      })
+    }
+  },
+  // 保存画布到图片
+  saveCanvasToImage() {
+    let sysWidth = this.data.systemInfo.width
+    let sysHeight = this.data.systemInfo.height
+    if (this.saving) {
+      return
+    }
+    this.saving = true
+    wx.canvasToTempFilePath({
+      x: 0,
+      y: 0,
+      width: sysWidth * 2,
+      height: sysHeight * 2,
+      canvasId: 'canvas',
+      success: ({ tempFilePath }) => {
+        wx.saveImageToPhotosAlbum({
+          filePath: tempFilePath,
+          success: () => {
+            this.saving = false
+            wx.showModal({
+              title: '保存成功',
+              content: '暂不支持直接分享图片，已保存到本地相册'
+            })
+          },
+          fail: () => {
+            this.saving = false
+          }
+        })
       }
     })
   },
   // 读取本地缓存数据
   getFromStorage() {
-    // debug wx.getStorageSync('mapInfo')
-    let mapInfo = wx.getStorageSync('mapInfo') || {
+    // wx.getStorageSync('mapInfo') ||
+    let mapInfo = wx.getStorageSync('mapInfo') ||{
       scale: 16,                // 默认地图比例
       longitude: 121.42394,     // 经度
       latitude: 31.22024,       // 纬度
@@ -124,6 +200,9 @@ Page({
       weather: '多云',          // 天气字符串
       address: '长宁区凌soho空附近',   // 地址描述
       area: ['上海市', '长宁区'],   // 地区
+      userImg: '/resources/user.jpg',
+      userImgWidth: '',
+      userImgHeight: ''
     }
     this.setData({mapInfo})
   },
@@ -141,7 +220,7 @@ Page({
     let numMonthImgs = dImgs(m)
     let yearImgs = yImgs(y)
     // 背景图
-    let bgImg = this.data.userImg || this.data.dfImg
+    let bgImg = this.data.mapInfo.userImg
     // 天气图
     let weatherImg = wImg(this.data.mapInfo.weather)
     // 画板信息
@@ -150,26 +229,50 @@ Page({
     let sysHeight = this.data.systemInfo.height
     ctx.setFontSize(14)
     ctx.clearRect(0, 0, sysWidth, sysHeight)
-    // 背景图
-    // ctx.drawImage(bgImg, 0, 0, sysWidth, sysHeight)
-    // 阴影
-    ctx.setGlobalAlpha(0.25)
-    const grd = ctx.createCircularGradient(sysWidth / 2, sysHeight / 2, sysHeight / 2)
-    grd.addColorStop(0, 'white')
-    grd.addColorStop(1, 'black')
-    ctx.setFillStyle(grd)
-    ctx.fillRect(0, 0, sysWidth, sysHeight)
+
     // 地图
     ctx.setGlobalAlpha(1)
     ctx.drawImage(this.data.mapImg, 0, 0, sysWidth, sysHeight)
+    // 背景图
+    if (bgImg) {
+      // debug
+      let w = sysWidth
+      let h = sysHeight - bottomHeight - headHeight
+      let W = this.data.mapInfo.userImgWidth
+      let H = this.data.mapInfo.userImgHeight
+      
+      ctx.setGlobalAlpha(0.3)
+      if (!W || !H) {
+        ctx.drawImage(bgImg, 0, headHeight, w, h)
+      } else if (w/h > W/H) {
+        ctx.drawImage(bgImg, 0, headHeight - (w / W * H - h) / 2, w, w / W * H)
+      } else {
+        ctx.drawImage(bgImg, - (h / H * W - w) / 2, headHeight, h / H * W, h)
+      }
+      // 黑底-阴影
+      // ctx.setGlobalAlpha(0.2)
+      // const grd = ctx.createCircularGradient(sysWidth / 2, sysHeight / 2, sysHeight / 2)
+      // grd.addColorStop(0, 'white')
+      // grd.addColorStop(1, 'black')
+      // ctx.setFillStyle(grd)
+      // ctx.fillRect(0, 0, sysWidth, sysHeight)
+      ctx.setGlobalAlpha(0.2)
+      ctx.drawImage(this.data.shadowImg, 0, headHeight, w, h)
+    } else {
+      // 白底-阴影
+      ctx.setGlobalAlpha(0.2)
+      ctx.setFillStyle('#ffffff')
+      ctx.fillRect(0, 0, sysWidth, sysHeight)
+    }
     // 地图-速度-圆
     let speed = this.data.mapInfo.speed
     let speedView = getSpeedView(speed, sysWidth / 4 - logoR / 2)
     let speedCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) / 3]
+    let speedBg = bgImg ? { color: '#ffffff', alpha: 0.5 } : { color: '#000000', alpha: 0.2 }
     ctx.beginPath()
     ctx.arc(speedCentre[0], speedCentre[1], speedView.r, 0, 2 * Math.PI)
-    ctx.setGlobalAlpha(0.2)
-    ctx.setFillStyle('#000000')
+    ctx.setGlobalAlpha(speedBg.alpha)
+    ctx.setFillStyle(speedBg.color)
     ctx.fill()
     ctx.closePath()
     // 地图-速度-块
@@ -186,10 +289,11 @@ Page({
     let altitude = this.data.mapInfo.altitude
     let altitudeView = getAltitudeView(altitude, sysWidth / 4 - logoR / 2 - 10)
     let altitudeCentre = [sysWidth / 4, (sysHeight - headHeight - bottomHeight) * 2 / 3]
+    let altitudeBg = bgImg ? { color: '#ffffff', alpha: 0.5 } : { color: '#000000', alpha: 0.2 }
     ctx.beginPath()
     ctx.arc(altitudeCentre[0], altitudeCentre[1], altitudeView.r, 0, 2 * Math.PI)
-    ctx.setGlobalAlpha(0.2)
-    ctx.setFillStyle('#000000')
+    ctx.setGlobalAlpha(altitudeBg.alpha)
+    ctx.setFillStyle(altitudeBg.color)
     ctx.fill()
     ctx.closePath()
     // 地图-海拔-块
@@ -287,36 +391,36 @@ Page({
     ctx.setFillStyle('#999999')
     ctx.fillText(titleText, sysWidth / 2, sysHeight - bottomHeight + 138)
     // 地图-头像
+    ctx.setGlobalAlpha(1)
     ctx.beginPath()
     ctx.arc(sysWidth / 2, sysHeight / 2 - 60, logoR, 0, 2 * Math.PI)
+    ctx.setStrokeStyle('#ffffff')
+    ctx.setLineWidth(10)
+    ctx.stroke()
     ctx.clip()
-    ctx.drawImage(this.data.userLogo, sysWidth / 2 - logoR, sysHeight / 2 - 88, logoR * 2, logoR * 2)
-    ctx.restore()
-    ctx.beginPath()
+    ctx.drawImage(this.data.mapInfo.userLogo, sysWidth / 2 - logoR, sysHeight / 2 - 88, logoR * 2, logoR * 2)
+    ctx.closePath()
     // 铺开
     ctx.draw()
-    this.loading(false)
+    // 完成
+    clearInterval(this.progressInterval)
+    this.setData({ progress : 100 })
   },
   // 画画开始了
   setCanvans() {
+    // 下载静态图
     wx.downloadFile({
       url: this.data.src,
-      success: (data1) => {
-        wx.downloadFile({
-          url: this.data.userInfo.avatarUrl,
-          success: (data2) => {
-            this.setData({ mapImg: data1.tempFilePath, userLogo: data2.tempFilePath })
-            this.canvasMaker()
-          }
-        })
+      success: ({ tempFilePath }) => {
+        this.setData({ mapImg: tempFilePath })
+        this.canvasMaker()
       }
     })
   },
   // 设置静态图
   setStaticMap() {
-    let apmap = new amapFile.AMapWX({ key: app.globalData.appKey });
-    let { longitude, latitude } = this.data.mapInfo
-    let markers = this.getMarker(longitude, latitude)
+    let { latitude, longitude } = this.data.mapInfo
+    // 获取设备信息
     wx.getSystemInfo({
       success: (data) => {
         var height = data.windowHeight;
@@ -325,20 +429,17 @@ Page({
         this.setData({
           systemInfo: { height, width }
         })
-        apmap.getStaticmap({
+        // 腾讯地图静态图
+        let uri = getStaticMap({
           zoom: this.data.mapInfo.scale,
           scale: 2, // 调用高清图 和小程序原生map中的scale不同意
           size: size,
-          location: `${longitude},${latitude}`,
-          markers: markers,
-          success: (data) => {
-            this.setData({ src: data.url })
-            this.setCanvans()
-          },
-          fail: (info) => {
-            wx.showModal({ title: info.errMsg })
-          }
+          center: `${latitude},${longitude}`,
+          markers: [{latitude, longitude}],
+          key: app.globalData.appKey_tx,
         })
+        this.setData({ src: uri })
+        this.setCanvans()
       }
     })
   },
@@ -356,21 +457,28 @@ Page({
       callback()
     }
   },
-  getMarker(longitude, latitude) {
-    let style = ['small', '0xffa500', '']
-    return `${style.join(',')}:${longitude},${latitude}`
-  },
   onLoad(option) {
+    let progress = 0;
+
+    this.setData({ progress })
+    this.progressInterval = setInterval(() => {
+      let left = 100 - progress
+      progress += left / 2
+      this.setData({ progress })
+    }, 200)
+
+    this.setAnimation()
     this.getFromStorage()
     this.setUserInfo(_ => {
       this.setStaticMap()
     })
   },
   onShow() {
-    
+
   },
   onHide() {
-    // 选择照片时加载
-    this.loading(true)
+    this.setData({
+      'progress': 100
+    })
   }
 })

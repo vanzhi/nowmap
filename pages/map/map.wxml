@@ -9,10 +9,8 @@
     longitude="{{mapInfo.longitude}}" 
     latitude="{{mapInfo.latitude}}">
   </map>
-  <!-- <cover-view class="cover-mask"></cover-view> -->
 
   <cover-view class="cover-location">
-    <!-- <cover-view class="location-line"></cover-view> -->
     <cover-image class="user-logo" src="{{userInfo.avatarUrl}}" bindtap="backToLocation"></cover-image>
   </cover-view>
 
@@ -26,8 +24,15 @@
   <cover-view class="location-reset" bindtap="resetLocation">
     <cover-image class="location-reset-icon" src="/resources/p0.png"></cover-image>
   </cover-view>
+
+  <cover-view class="location-bg" bindtap="toChooseImage">
+    <cover-view class="location-bg-tip" wx:if="{{!mapInfo.userImg}}">添加背景</cover-view>
+    <cover-image class="location-bg-img" wx:else src="{{mapInfo.userImg}}"></cover-image>
+  </cover-view> 
+  <cover-view class="location-bg-clear"wx:if="{{mapInfo.userImg}}" bindtap="clearImage">
+    <cover-image src="/resources/close.png"></cover-image>
+  </cover-view>
 </view>
-<cover-view class="primary-line"></cover-view>
 <view class="map-option">
-  <view class="btn-buttom" bindtap="toStaticMap">下一步</view>
+  <button class="btn-buttom" bindtap="toStaticMap">一键生成</button>
 </view>

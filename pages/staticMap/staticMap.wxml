@@ -1,9 +1,14 @@
 <!--pages/staticMap/staticMap.wxml-->
+<progress percent="90" color="#ffa500" stroke-width="{{3}}" active />
 <view class="img-box">
-  <!-- <image src="{{src}}"></image> -->
-  <canvas canvas-id="canvas" />
-  <cover-view class="canvas-operate">
-    <!-- <cover-view class="button" bindtap="toChangeBgImg">更换背景图</cover-view > -->
-    <!-- <cover-view class="button">{{loading ? '载入中' : ''}}</cover-view > -->
+  <canvas canvas-id="canvas" class="canvas-block" bindtap="changeShareVisible"></canvas>
+  <cover-view class="canvas-operate" wx:if="{{progress >= 100}}" animation="{{animationData}}" style="{{shareVisible&&!canUseAnimation?'left:-250rpx':''}}">
+    <cover-view class="operate-button" bindtap="saveCanvasToImage"> 分享 </cover-view>
   </cover-view>
+</view>
+<view class="canvas-mask" wx:if="{{progress < 100}}">
+  <text wx:if="{{progress <= 50}}">正在获取信息...</text>
+  <text wx:elif="{{progress <= 80}}">静态图导入...</text>
+  <text wx:elif="{{progress <= 90}}">数据分析集成...</text>
+  <text wx:elif="{{progress <= 100}}">画布生成，打卡中...</text>
 </view>

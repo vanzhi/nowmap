@@ -3,28 +3,12 @@ const amapFile  = require('../../3rds/amap-wx.js')
 const end       = 'end'
 const app       = getApp()
 const EARTH_RADIUS = 6378137.0;    //单位M
-const PI = Math.PI;
+const PI = Math.PI
 const baseDir = '/resources/'
 
-function getRad(d) {
-  return d * PI / 180.0;
-}
+let count = 0
 
-function getGreatCircleDistance(lat1, lng1, lat2, lng2) {
-  var radLat1 = getRad(lat1);
-  var radLat2 = getRad(lat2);
-
-  var a = radLat1 - radLat2;
-  var b = getRad(lng1) - getRad(lng2);
-
-  var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
-  s = s * EARTH_RADIUS;
-  s = Math.round(s * 10000) / 10000.0;
-
-  return s; 
-}
-
-// 5秒内通过距离求得平均速
+// 速度变化监听
 function onSpeed(callback) {
   let sites = []
   let v = 0   // 速度
@@ -32,13 +16,21 @@ function onSpeed(callback) {
   let interval = setInterval(_ => {
     wx.getLocation({
       success: ({ latitude, longitude, altitude, speed }) => {
-        callback(speed, altitude, latitude, longitude)
+        count ++
+        if ((!(count % 60) || count === 1) && speed < 0) {
+          wx.showModal({
+            title: '信号弱',
+            content: '速度计算可能不准确',
+          })
+        }
+        callback(latitude, longitude, altitude, speed)
       }
     })
   }, 1000)
   return interval
 }
 
+// 设置缩放等级
 function setScale(altitude) {
   let scale = 16
   if (altitude <= 0) {
@@ -77,7 +69,7 @@ Page({
     controls: [],
     sites: [],          // 坐标点
     mapInfo: {
-      scale     : 16,       // 最后获得地图比例
+      scale     : 16,   // 最后获得地图比例
       longitude : 0,    // 经度
       latitude  : 0,    // 纬度
       speed     : 0,    // 速度
@@ -86,7 +78,25 @@ Page({
       weather   : '',   // 天气字符串
       address   : '',   // 地址描述
       area      : [],   // 地区
-      checked   : ['weather', 'speed', 'altitude']
+      userImg   : '',   // 用户背景图
+      userImgWidth: 0,
+      userImgHeight: 0
+    }
+  },
+  onShareAppMessage: function (res) {
+    if (res.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(res.target)
+    }
+    return {
+      title: '记录你在旅途中的此时此刻',
+      path: '/pages/map/map',
+      success: function (res) {
+        // 转发成功
+      },
+      fail: function (res) {
+        // 转发失败
+      }
     }
   },
   // 跳转到静态图页面
@@ -104,6 +114,37 @@ Page({
       url: '../staticMap/staticMap?origin=map'
     })
   },
+  // 选择图片
+  toChooseImage() {
+    wx.chooseImage({
+      count: 1,
+      success: ({ tempFilePaths }) => {
+        this.setData({
+          'mapInfo.userImg': tempFilePaths[0]
+        })
+        wx.getImageInfo({
+          src: tempFilePaths[0],
+          success: ({ width, height, path }) => {
+            this.setData({
+              'mapInfo.userImgWidth': width,
+              'mapInfo.userImgHeight': height,
+            })
+          }
+        })
+      },
+      fail: () => {
+        wx.showModal({
+          content: '添加图片失败',
+        })
+      }
+    })
+  },
+  // 清除图片
+  clearImage() {
+    this.setData({
+      'mapInfo.userImg': ''
+    })
+  },
   // 重新定位
   resetLocation() {
     this.setLocation(true)
@@ -116,18 +157,12 @@ Page({
   },
   // 设置速度、海拔、经纬度信息
   setPosition() {
-    this.speedListener = onSpeed((speed, altitude, la1, lo1) => {
-      // if (speed < 0) {
-        let { latitude, longitude } = this.data.mapInfo
-        // speed = getGreatCircleDistance(latitude, longitude, la1, lo1)
-        //debug
-        // speed = [latitude, longitude, la1, lo1].join('|')
-      // }
-      speed = speed < 0 ? 0 : Math.round(speed * 100) / 100
+    this.speedListener = onSpeed((la1, lo1, altitude, speed) => {
+      speed = speed < 0 ? 0 : (Math.round(speed * 100) / 100)
       altitude = Math.round(altitude)
       this.setData({
         'mapInfo.speed': speed,
-        'mapInfo.altitude': altitude,
+        'mapInfo.altitude': altitude
       })
     })
   },
@@ -177,7 +212,9 @@ Page({
       latitude,
       longitude,
       success: (data) => {
-        let { province, district, township } = data[0].regeocodeData.addressComponent
+        let { province, district, city, township } = data[0].regeocodeData.addressComponent
+        // debug
+        // city = city && city.length ? city.join(',') : district
         this.setData({ 
           'mapInfo.address' : data[0].desc,
           'mapInfo.area': [province, district],
@@ -189,21 +226,29 @@ Page({
       }
     })
   },
+  saveUserInfo(userInfo) {
+    userInfo && this.setData({
+      userInfo: userInfo
+    })
+    // 下载并保存用户头像
+    wx.downloadFile({
+      url: this.data.userInfo.avatarUrl,
+      success: ({ tempFilePath }) => {
+        this.setData({ 'mapInfo.userLogo': tempFilePath})
+      }
+    })
+  },
   // 获取并存储用户信息
   setUserInfo() {
     let userInfo = app.globalData.userInfo
     if (userInfo) {
-      this.setData({
-        userInfo: userInfo
-      })
+      this.saveUserInfo(userInfo)
       return;
     }
     wx.getUserInfo({
       withCredentials: true,
       success: (data) => {
-        this.setData({
-          userInfo: data.userInfo
-        })
+        this.saveUserInfo(data.userInfo)
       }
     })
   },
@@ -212,8 +257,7 @@ Page({
       success: (data) => {
         this.setData({
           'mapInfo.weather': data.weather.data,
-          'mapInfo.temperature': data.temperature.data,
-          'checkboxGroup.weather.displayInfo': data.weather.data
+          'mapInfo.temperature': data.temperature.data
         })
       },
       fail: (info) => {
@@ -241,7 +285,7 @@ Page({
   onLoad: function (options) {
     // 创建map上下文-微信/高德
     this.mapCtx = wx.createMapContext('map')
-    this.amap   = new amapFile.AMapWX({ key: app.globalData.appKey })
+    this.amap   = new amapFile.AMapWX({ key: app.globalData.appKey_gd })
   },
   onShow: function () {
     // 获取当前经纬度位置信息
